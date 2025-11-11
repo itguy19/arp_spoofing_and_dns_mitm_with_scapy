@@ -17,7 +17,6 @@ def analyze_traffic(packets):
     dns_queries = []
 
     for p in packets:
-        # Extract HTTP URLs
         if p.haslayer(TCP) and (p[TCP].dport == 80 or p[TCP].sport == 80):
             if p.haslayer(Raw):
                 try:
@@ -36,9 +35,10 @@ def analyze_traffic(packets):
 
     return urls, dns_queries
 
-def save_results(urls, dns_queries):
-    """Save to CSV files"""
+def save_results(urls, dns_queries, packets):
     timestamp = datetime.now().strftime("%H%M%S")
+
+    wrpcap(f"traffic_capture_{timestamp}.pcap", packets)
 
     with open(f"urls_{timestamp}.csv", "w") as f:
         f.write("URL\n")
@@ -50,14 +50,14 @@ def save_results(urls, dns_queries):
         for query, count in Counter(dns_queries).most_common():
             f.write(f"{query},{count}\n")
 
-    print(f"💾 Saved {len(set(urls))} URLs to urls_{timestamp}.csv")
-    print(f"💾 Saved {len(set(dns_queries))} DNS queries to dns_{timestamp}.csv")
+    print(f"Saved {len(set(urls))} URLs to urls_{timestamp}.csv")
+    print(f"Saved {len(set(dns_queries))} DNS queries to dns_{timestamp}.csv")
 
 
 if __name__ == "__main__":
     packets = sniff_http_dns("eth0", 300)
     urls, dns_queries = analyze_traffic(packets)
-    save_results(urls, dns_queries)
+    save_results(urls, dns_queries, packets)
 
     print(f"\n Summary: {len(urls)} HTTP requests, {len(dns_queries)} DNS queries")
     print("Top 5 DNS:", Counter(dns_queries).most_common(5))

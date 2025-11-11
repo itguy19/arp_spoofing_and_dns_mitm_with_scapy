@@ -58,9 +58,9 @@ class ARPSpoofer:
         try:
             while True:
                 self.spoof()
-                packet_count += 2
-                if packet_count % 20 == 0:
-                    logging.info(f"Spoofed {packet_count} ARP packets...")
+                self.packet_count += 2
+                if self.packet_count % 20 == 0:
+                    logging.info(f"Spoofed {self.packet_count} ARP packets...")
                 time.sleep(10)
         except KeyboardInterrupt:
             self.restore()
